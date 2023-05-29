@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Rempote Call Manager (callmanager)
 
 An open source project to build a twilio integration to support providing health care in remote locations from a distance.
@@ -39,3 +40,7 @@ quasar build
 
 ### Customize the configuration
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js).
+=======
+# digital-first
+Remote health consultation
+>>>>>>> c16a29f8d7ce1a82ce6e5b3d01d99b6783e3b80b
