@@ -1,5 +1,5 @@
 <<<<<<< HEAD
-# Rempote Call Manager (callmanager)
+# Remote Call Manager (callmanager)
 
 An open source project to build a twilio integration to support providing health care in remote locations from a distance.
 
