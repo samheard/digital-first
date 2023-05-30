@@ -2,23 +2,17 @@
   <q-page class="q-pa-sm">
     <q-card>
       <q-card-section horizontal>
-        <q-card-section style="max-width: 400px">
-          <q-video
-            src="https://www.youtube.com/embed/CNlfS7F58Ic"
-            @click="showLargeVideo()"
-          />
+        <q-card-section style="min-width: 300px">
+          <div class="text-h6">Camera 1</div>
+          <q-img src="Coughing.gif" style="width: 300px" />
         </q-card-section>
-        <q-card-section style="max-width: 400px">
-          <q-video
-            src="https://www.youtube.com/embed/AShFZ1XJFqg"
-            @click="showLargeVideo()"
-          />
+        <q-card-section style="min-width: 300px">
+          <div class="text-h6">Camera 2</div>
+          <q-img src="Child.gif" style="width: 300px" />
         </q-card-section>
-        <q-card-section style="max-width: 400px">
-          <q-video
-            src="https://www.youtube.com/embed/YRNxwX-9EUE"
-            @click="showLargeVideo()"
-          />
+        <q-card-section style="min-width: 300px">
+          <div class="text-h6">Close Up</div>
+          <q-img src="Skin.gif" style="width: 300px" />
         </q-card-section>
         <q-card-section style="max-width: 400px" vertical left>
           <q-card-section>
