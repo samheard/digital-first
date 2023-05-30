@@ -20,8 +20,6 @@
         <q-route-tab to="/video" exact name="video" label="Video" />
         <q-route-tab to="/monitor" exact name="monitor" label="Monitor" />
         <q-route-tab to="/dispense" exact name="dispense" label="Dispense" />
-        <q-route-tab to="/test" exact name="test" label="Test" />
-        <q-route-tab to="/search" exact name="testSearch" label="TestSearch" />
       </q-tabs>
     </q-header>
 

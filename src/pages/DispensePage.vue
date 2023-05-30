@@ -1,7 +1,8 @@
 <template>
   <!-- Issues with Dispense page
   1. The table is not responsive and does not refresh when you push the open button - tried ref="lockerTable" and
-  this.$refs.lockerTable.refresh() but it does not work. The other solution to make a key for the table and change that onUpdate does not do the trick either
+  this.$refs.lockerTable.refresh(), Setting a tableKey and changing it, Watcheffect but it does not work. The other solution to make a key for the table and change that onUpdate does not do the trick either
+  https://vuejs.org/guide/extras/reactivity-in-depth.html#how-reactivity-works-in-vue is the definitive statement but I cannot see that.
   2. The filter works now - has to be quite complicated to work with all the changes to the columns as these are not filtered in the default way
   3. Dispensed date does not show and not sure that it is needed.
 
@@ -22,7 +23,6 @@ This might simplify the interactions and coding
         :filter="filter"
         :filter-method="customFilter"
         :rows-per-page-options="[10, 20, 0]"
-        :key="tableKey"
       >
         <template v-slot:body="props">
           <q-tr
@@ -102,7 +102,7 @@ This might simplify the interactions and coding
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, WatchEffect } from "vue";
 
 const columns = [
   {
@@ -289,32 +289,26 @@ export default {
       filter: ref(""), //this is the search box
       columns,
       rows,
-      tableKey: 0,
       buttonLabel: "Open",
     };
   },
 
   methods: {
     openLocker(row) {
-      console.log(row);
       row.available = "N";
       if (row.status === "dispense") {
         row.date_dispensed = new Date().toISOString().slice(0, 16);
       }
       row.open = "Y"; //this allows the person maintaining the dispensing lockers to know this reuseable item has been used.
-      this.onUpdate();
     },
 
     closeLocker(row) {
       row.available = "Y";
-      this.onUpdate();
     },
 
-    onUpdate() {
-      console.log("updated");
-
-      this.tableKey += 1;
-    },
+    // onUpdate() {
+    //   console.log("updated");
+    // },
 
     customFilter(rows, search, cols) {
       search = String(search).toLowerCase();

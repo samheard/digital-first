@@ -17,7 +17,6 @@ ToDo: 1) Save changes made in the form back to the database - problem with "unde
         clearable
         placeholder="Search for a caller"
         :options="options"
-        :loading="loading"
         @filter="filterFn"
         autocomplete="off"
         autocorrect="off"
@@ -57,56 +56,72 @@ ToDo: 1) Save changes made in the form back to the database - problem with "unde
       <q-card-section>
         <q-item>
           <q-item-section>
-            <q-item-label class="text-caption">Phone Number</q-item-label>
-            <q-item-label>{{ selectedCaller.PhoneNumber }}</q-item-label>
+            <q-item-label class="text-caption">Phone Number:</q-item-label>
+            <q-item-label class="text-body1">{{
+              selectedCaller.PhoneNumber
+            }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-card-section>
       <q-card-section class="q-pl-md" horizontal>
         <q-item>
           <q-item-section>
-            <q-item-label class="text-caption">Date of birth</q-item-label>
-            <q-item-label>{{ selectedCaller.DateOfBirth }}</q-item-label>
+            <q-item-label class="text-caption">Date of birth:</q-item-label>
+            <q-item-label class="text-body1">{{
+              selectedCaller.DateOfBirth
+            }}</q-item-label>
           </q-item-section>
         </q-item>
         <q-item>
           <q-item-section>
-            <q-item-label class="text-caption">HRN</q-item-label>
-            <q-item-label>{{ selectedCaller.LocalHealthID }}</q-item-label>
+            <q-item-label class="text-caption">HRN:</q-item-label>
+            <q-item-label class="text-body1">{{
+              selectedCaller.LocalHealthID
+            }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-card-section>
       <q-card-section class="q-pl-md" horizontal>
         <q-item>
           <q-item-section>
-            <q-item-label class="text-caption">Hse No.</q-item-label>
-            <q-item-label>{{ selectedCaller.HouseNumber }}</q-item-label>
+            <q-item-label class="text-caption">Hse No.:</q-item-label>
+            <q-item-label class="text-body1">{{
+              selectedCaller.HouseNumber
+            }}</q-item-label>
           </q-item-section>
         </q-item>
         <q-item>
           <q-item-section>
-            <q-item-label class="text-caption">Address</q-item-label>
-            <q-item-label>{{ selectedCaller.ClientAddress }}</q-item-label>
+            <q-item-label class="text-caption">Address:</q-item-label>
+            <q-item-label class="text-body1">{{
+              selectedCaller.ClientAddress
+            }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-card-section>
       <q-card-section>
         <q-item>
           <q-item-section>
-            <q-item-label class="text-caption">Locality</q-item-label>
-            <q-item-label>{{ selectedCaller.Locality }}</q-item-label>
+            <q-item-label class="text-caption">Locality:</q-item-label>
+            <q-item-label class="text-body1">{{
+              selectedCaller.Locality
+            }}</q-item-label>
           </q-item-section>
         </q-item>
         <q-item v-if="selectedCaller.Notes">
           <q-item-section>
-            <q-item-label class="text-caption">Notes</q-item-label>
-            <q-item-label>{{ selectedCaller.Notes }}</q-item-label>
+            <q-item-label class="text-caption">Notes:</q-item-label>
+            <q-item-label class="text-body1">{{
+              selectedCaller.Notes
+            }}</q-item-label>
           </q-item-section>
         </q-item>
         <q-item v-if="selectedCaller.Alert">
           <q-item-section>
-            <q-item-label class="text-caption">Alert</q-item-label>
-            <q-item-label>{{ selectedCaller.Alert }}</q-item-label>
+            <q-item-label class="text-caption">Alert:</q-item-label>
+            <q-item-label class="text-body1">{{
+              selectedCaller.Alert
+            }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-card-section>
@@ -245,7 +260,7 @@ ToDo: 1) Save changes made in the form back to the database - problem with "unde
 </template>
 
 <script>
-name: "TestSearch";
+name: "Caller";
 import { ref } from "vue";
 
 export default {
@@ -303,7 +318,6 @@ export default {
       this.$axios
         .get("http://localhost:3000/locales/idandname/")
         .then((response) => {
-          console.log(response);
           this.localityOptions = response.data.data.map((item) => ({
             label: item.LocalityName,
             value: item.id,
