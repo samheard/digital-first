@@ -82,6 +82,7 @@ yarn create quasar
 This should give you a dialog where you are asked for various options via the command line to set up your project 
 Then navigate to your project folder and run 
 ```bash
+vue add quasar
 quasar dev
 ```
 This should create a running instance of Quasar and open a Quasar webpage at 
@@ -92,21 +93,29 @@ But if the project home folder is blank the index will default to the Quasar fro
 ### To get a running instance of this code:
 Clone this repo to the folder where you intend to edit/run the app
 ```bash
+# navigate to project folder 
+cd `~/../<project_folder> 
 git clone https://github.com/samheard/digital-first
 ```
-Create another instance of the Quasar server with 
+Create another instance of the Quasar server 
+Note that you have to be outside the project folder 
 ```bash
 yarn create quasar
 ```
 Edit the various options presented on the CLI 
-Generally accept the defaults 
+
+Generally accept the defaults
+
 Navigate to /<project folder>/digital-first
+  
 Add quasar to vue with 
 ```bash
 vue add quasar
 ```
 You will be asked whether to modify some files - dont!
+  
 Otherwise you will end up with the default webpage again 
+  
 Then start the server with
 ```bash
 quasar dev
