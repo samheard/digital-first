@@ -1,7 +1,7 @@
 
-# Remote Call Manager (callmanager)
+# Remote Call Manager 
 
-An open source project to build a twilio integration to support providing health care in remote locations from a distance.
+An open source project to support the delivery of Health Care in Remote locations, using the Twilio communication system and the Quasar web framework.
 
 ## Install the dependencies
 ```bash
@@ -40,7 +40,6 @@ quasar build
 
 ### Customize the configuration
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js).
-=======
 
 
 ### Installing on Linux Mint (RH)
@@ -55,7 +54,7 @@ sudo apt-get install yarn
 ```
 The frameworks used to create Quasar are node.js and vue.js
 
-Vue will complain if the node.js version is too old - likely the Ubuntu repository accessed by your package manager has an older vesion 
+Vue will complain if the node.js version is too old - likely the Ubuntu repository accessed by your package manager has an older version 
 In my case it was 10.* when vue needs >=12.0
 
 Add a PPA repo to your package lists with 
@@ -88,4 +87,29 @@ quasar dev
 This should create a running instance of Quasar and open a Quasar webpage at 
 localhost:8080
 
+But if the project home folder is blank the index will default to the Quasar front page 
+
+### To get a running instance of this code:
+Clone this repo to the folder where you intend to edit/run the app
+```bash
+git clone https://github.com/samheard/digital-first
+```
+Create another instance of the Quasar server with 
+```bash
+yarn create quasar
+```
+Edit the various options presented on the CLI 
+Generally accept the defaults 
+Navigate to /<project folder>/digital-first
+Add quasar to vue with 
+```bash
+vue add quasar
+```
+You will be asked whether to modify some files - dont!
+Otherwise you will end up with the default webpage again 
+Then start the server with
+```bash
+quasar dev
+```
+If all is well you should see the current state of the project 
 
