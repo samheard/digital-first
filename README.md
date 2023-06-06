@@ -52,6 +52,10 @@ Yarn is a newer and easier Javascript package manager for newbies
 ```bash
 sudo apt-get install yarn
 ```
+There seems to be some dispute over names (!!) a program called cmdtest may be selected which has no relation to yarn.
+
+See the discussion groups for a solution.
+
 The frameworks used to create Quasar are node.js and vue.js
 
 Vue will complain if the node.js version is too old - likely the Ubuntu repository accessed by your package manager has an older version 
@@ -127,7 +131,7 @@ Otherwise you will end up with the default webpage again
   
 Then start the server with
 ```bash
-quasar dev
+yarn quasar dev
 ```
 If all is well you should see the current state of the project 
 ### The Database for the project can be found at 
