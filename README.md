@@ -61,16 +61,25 @@ Add a PPA repo to your package lists with
 ```bash
 # Home directory
 cd ~
+```
+```bash
 # write a bash script to /tmp - inspect this for security with nano if you wish 
 curl -sL https://deb.nodesource.com/setup_16.x -o /tmp/nodesource_setup.sh
+```
+```bash
 # run the script as root
 sudo bash /tmp/nodesource_setup.sh
+```
+```bash
 # download node.js 
 sudo apt install nodejs
+```
+```bash
 # Check the version 
 node -v
-# in my case it was 16.0
 ```
+In my case it was 16.0
+
 Now use Yarn to install vue 
 ```bash 
 yarn add vue.js 
@@ -121,4 +130,8 @@ Then start the server with
 quasar dev
 ```
 If all is well you should see the current state of the project 
-
+# Database for the project can be found at 
+```bash
+git clone https://github.com/samheard/RemoteCalldB
+```
+Follow the Readme.md to install 
