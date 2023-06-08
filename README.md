@@ -5,7 +5,7 @@ An open source project to support the delivery of Health Care in Remote location
 Components for development (current prototype):
 1) A Twilio plugin to take the number called and log details, to show a list of people who have called on that number, and log details about the caller, access information about that locality including maps, details of closest clinic, air strips and other distances (currently the 1st or caller page in the Quasar project)
 2) A Quasar web page which launches committed to a single location - controlling entry to the facility, control of the video cameras and voice, remote monitoring and dispensing. This component (currently pages 2 - Entry, 3 - Video, 4 - Monitoring and 5 - Dispensing in the Quasar project) will need to have the video feeds, entry controls, monitoring and dispensing controls extracted into a location specific set up. 
-3) A database project using Express and better-sqlite to store and retrieve information, logs and dispensing information.
+3) Remote Call DB a separate database project using Express and better-sqlite to store and retrieve information, logs and dispensing information.
 
 ## Install the dependencies
 ```bash
