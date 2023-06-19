@@ -1,9 +1,12 @@
+<!-- Main Layout Top tool bar and title -->
+
 <template>
   <q-layout view="hHh lpr fFf">
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title> Remote Call Centre</q-toolbar-title>
         <div>
+          <!-- Info icon toggles clinic data sidebar -->
           <q-btn
             flat
             dense
@@ -13,6 +16,8 @@
             @click="toggleRightDrawer"
           />
         </div>
+
+        <!-- Top toolbar Main Menu -->
       </q-toolbar>
       <q-tabs>
         <q-route-tab to="/" exact name="call" label="Call" />

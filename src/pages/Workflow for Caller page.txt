@@ -1,0 +1,19 @@
+Workflow for Caller page 
+(1) Client calls access number to Remote Telehealth
+(2) Call routed to agent via Twilio
+Scenarios
+(3) Agent or administrator   
+opens search dialog to find client 
+May have to edit details - need for informal "consult"? in dB 
+If client not present - creates new client - consider "Caller new/Edit" page 
+Probably no need to delete caller - keep on dB 
+?How to deal with aliases/multiple clients ? merge callers
+
+(a) has no current clients => Selects to deal with immediately
+(b) Agent has current client => adds to waitlist 
+
+(4) Agent selects caller from waitlist ? probably no further need to edit 
+Could be done via search dialog
+
+
+

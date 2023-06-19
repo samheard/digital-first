@@ -3,40 +3,78 @@ ToDo: 1) Save changes made in the form back to the database - problem with "unde
   2) Add a new record when the form is filled because they cannot find someone
   3) Edit the record comes from the q-card that shows when a person is selected
   4) I currently have the edit form in the dialog - but I cannot control the padding
+  (5) RH add a wait list facility for callers waiting
+  - maybe split the page into two - one for callers and one for wait list
  -->
+
 <template>
   <q-page>
-    <div class="q-pa-md" style="max-width: 400px">
-      <q-select
-        v-model="selected"
-        use-input
-        fill-input
-        hide-selected
-        standout
-        inputdebounce="0"
-        clearable
-        placeholder="Search for a caller"
-        :options="options"
-        @filter="filterFn"
-        autocomplete="off"
-        autocorrect="off"
-        autocapitalize="off"
-        spellcheck="false"
-        @update:model-value="callerSelected"
-        hint="Part of name / date of birth (YYYY-MM-DD) / HRN (######)"
-      >
-        <template v-slot:append>
-          <q-icon name="search" class="cursor-pointer" />
-        </template>
-        <template v-slot:no-option>
-          <q-item>
-            <q-item-section class="text-grey"> No results </q-item-section>
-          </q-item>
-        </template>
-      </q-select>
+    <!-- Caller search and waitlist on page - layout as 2 columns -->
+    <div class="row">
+      <!-- Column for Caller Search  -->
+      <q-card>
+        <div class="q-pa-md" style="max-width: 400px">
+          <q-select
+            v-model="selected"
+            use-input
+            fill-input
+            hide-selected
+            standout
+            inputdebounce="0"
+            clearable
+            placeholder="Search for a caller"
+            :options="options"
+            @filter="filterFn"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            @update:model-value="callerSelected"
+            hint="Part of name / date of birth (YYYY-MM-DD) / HRN (######)"
+          >
+          </q-select>
+        </div>
+      </q-card>
+
+      <!-- Column for Waitlist  -->
+      <q-card>
+        <q-card-section>
+          <q-item-label class="text-h5">Waitlist</q-item-label>
+        </q-card-section>
+        <q-card-section>
+          <q-item-label v-if="this.waitlistedCallers.length == 1">
+            There is 1 caller waiting
+          </q-item-label>
+          <q-item-label v-else-if="this.waitlistedCallers.length > 1">
+            There are {{ this.waitlistedCallers.length }} callers waiting
+          </q-item-label>
+          <q-item-label v-else> There are no callers waiting </q-item-label>
+        </q-card-section>
+        <q-card-section>
+          <div class="q-pa-md" style="max-width: 350px">
+            <q-list
+              v-for="caller in this.waitlistedCallers"
+              :key="caller.id"
+              dense
+              class="rounded-borders"
+            >
+              <q-item clickable v-ripple @click="takeCaller(caller.id)">
+                <!-- For initial startup
+              When waitlist items will be rendered in Javascript-->
+                {{ caller.FirstName + " " + caller.LastName }}
+              </q-item>
+            </q-list>
+          </div>
+        </q-card-section>
+      </q-card>
     </div>
 
-    <q-card v-if="selected" bordered style="max-width: 400px">
+    <q-card
+      v-if="selected"
+      bordered
+      style="max-width: 400px"
+      id="selectedCaller"
+    >
       <q-card-section class="bg-primary text-white" horizontal>
         <q-item>
           <q-item-section>
@@ -143,17 +181,30 @@ ToDo: 1) Save changes made in the form back to the database - problem with "unde
           style="max-width: 400px"
           @click="newCaller"
         />
+
         <q-btn
-          flat
+          rounded
           color="primary"
-          label="Delete"
-          type="reset"
+          label="Add to Waitlist"
+          type="submit"
           class="q-mt-md"
           style="max-width: 400px"
+          @click="addToWaitlist"
         />
-        <!-- @click="deleteCaller"  -->
-      </q-card-actions></q-card
-    >
+
+        <q-btn
+          rounded
+          color="primary"
+          label="Close"
+          type="submit"
+          class="q-mt-md"
+          style="max-width: 400px"
+          @click="closeSelectedCaller"
+        />
+      </q-card-actions>
+    </q-card>
+
+    <!-- Dialog for editing the caller details -->
     <q-dialog v-model="dialog" :position="position">
       <div class="q-pa-md" style="width: 400px">
         <q-form class="q-pl-md" style="max-width: 400px" @submit="submitCaller">
@@ -265,17 +316,32 @@ import { ref } from "vue";
 
 export default {
   setup() {
+    // Set up variables for the dialog
     const dialog = ref(false);
     const position = ref("top");
     return {
+      // Flag to show the loading spinner
       loading: false,
+      // The selected option in the q-select
       selected: ref(null),
+      // The array of options in the q-select
       clients: ref([]), // this is the array of options (objects.value, .lablel and .key) that will be displayed in the q-select search at the top of the form
       selectedCaller: ref({}), // this is the selected option that will fill in the form
       callers: ref([]), // this is the array of objects returned from the Axios API
+      // Array of options for the q-select
       options: ref([]),
+
+      // Array of waitlisted callers
+      waitlistedCallers: ref([]),
+      // Counter for waitlist
+      waitlistCounter: 0,
+      // Selected Caller for waitlisting
+      waitlistedCaller: ref({}),
+      //
       localityOptions: [],
+      // Flag to show the dialog
       dialog,
+      // The position of the dialog
       position,
 
       openDialog(pos) {
@@ -288,9 +354,11 @@ export default {
   methods: {
     //to pull the callers from the API
     load() {
+      // Set the loading flag to true to show a spinner
       this.loading = true;
       //use Axios to get the data from the API  - need to use $api here but does not appear to be working
       //console.log(this.$api);
+
       this.$axios
         .get(`http://localhost:3000/callers`)
         // .get(this.$api(`/callers`)) //this.$api is not working - there is an entry in the boot file axios.js
@@ -416,9 +484,53 @@ export default {
       this.dialog = true;
     },
 
+    // Render Waitlist
+    renderWaitlist() {
+      // if no clients, display "No clients waiting"
+      // else display list of clients waiting
+      this.waitlistCounter = this.waitlistedCallers.length;
+      let text = "";
+      if (this.waitlistCounter == 0) {
+        console.log("No clients waiting");
+      } else {
+        // if clients waiting, display list of clients waiting
+        for (let i = 0; i < this.waitlistCounter; i++) {
+          this.waitlistedCaller = this.waitlistedCallers[i];
+          console.log("Waitlisted Caller ", this.waitlistedCaller.id);
+
+          console.log("Clients waiting");
+        }
+        //document.getElementById("waitlist1").innerHTML = text;
+      }
+    },
+
+    // Add selected client to waitlist
+    addToWaitlist() {
+      // Add selected client to waitlist
+      this.waitlistedCallers.push(this.selectedCaller);
+      console.log("Add to waitlist ", this.waitlistedCaller.id);
+
+      // Display selected clients in waitlist
+      this.renderWaitlist();
+    },
+
+    // Remove selected client from waitlist
+    takeCaller(id) {
+      let index = this.waitlistedCallers.findIndex((x) => x.id === id);
+
+      if (index > -1) {
+        // Display client details to allow dealing with the client
+        this.selectedCaller = this.waitlistedCallers[index];
+        this.selected = true;
+        // and remove caller from waitlist
+        this.waitlistedCallers.splice(index, 1); // 2nd parameter means remove one item only
+      }
+      console.log("Remove from waitlist ", id, index);
+      this.renderWaitlist();
+    },
+
     callerSelected() {
       try {
-        console.log(this.selected);
         this.selectedCaller = this.callers.find(
           (item) => item.id === this.selected.value
         );
@@ -426,6 +538,11 @@ export default {
       } catch (error) {
         console.log(error); //need to handle this error
       }
+    },
+
+    closeSelectedCaller() {
+      console.log("Close selected caller");
+      this.selected = false;
     },
   },
   mounted() {

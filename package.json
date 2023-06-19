@@ -2,7 +2,7 @@
   "name": "callmanager",
   "version": "0.0.1",
   "description": "An open source project to build a twilio integration to support providing health care in remote locations from a distance.",
-  "productName": "Rempote Call Manager",
+  "productName": "Remote Call Manager",
   "author": "Sam Heard <sam.heard@oceanhealthsystems.com>",
   "private": true,
   "scripts": {
@@ -19,9 +19,10 @@
     "core-js": "^3.6.5",
     "pinia": "^2.0.11",
     "quasar": "^2.6.0",
-    "vue": "^3.0.0",
+    "vue": "^3.3.4",
     "vue-i18n": "^9.0.0",
-    "vue-router": "^4.0.0"
+    "vue-router": "^4.0.0",
+    "vue.js": "^0.3.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.13.14",
