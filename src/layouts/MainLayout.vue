@@ -42,8 +42,10 @@
         >
           <q-card>
             <q-card-section>
-              <a href="https://goo.gl/maps/jAkzZ4E8jVv5Xt5y5" target="_blank"
-                >Imanpa (Google maps)</a
+              <a
+                href="https://www.google.com/maps/d/edit?mid=1khd8K-IpWi0EOrN7jLeGhIqgITs613Q&usp=sharing"
+                target="_blank"
+                >Imanpa (House numbers)</a
               >
               <!-- <q-btn
                 flat
@@ -67,9 +69,7 @@
               ></q-btn>
             </q-card-actions> -->
             <q-card-section>
-              <a href="/ImanpaHouseMap.pdf" target="_blank"
-                >Imanpa map & House No.</a
-              >
+              <a href="/ImanpaHouseMap.pdf" target="_blank">Imanpa (SLAP)</a>
             </q-card-section>
           </q-card>
         </q-expansion-item>

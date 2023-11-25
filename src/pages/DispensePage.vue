@@ -1,9 +1,6 @@
 <template>
   <!-- Issues with Dispense page
-  1. The table is not responsive and does not refresh when you push the open button - tried ref="lockerTable" and
-  this.$refs.lockerTable.refresh(), Setting a tableKey and changing it, Watcheffect but it does not work. The other solution to make a key for the table and change that onUpdate does not do the trick either
-  https://vuejs.org/guide/extras/reactivity-in-depth.html#how-reactivity-works-in-vue is the definitive statement but I cannot see that.
-  2. The filter works now - has to be quite complicated to work with all the changes to the columns as these are not filtered in the default way
+   2. The filter works now - has to be quite complicated to work with all the changes to the columns as these are not filtered in the default way
   3. Dispensed date does not show and not sure that it is needed.
 
 Possible developments - put all the reuseable items in a separate tab - and show if any of these items are still open with a warning sign.
@@ -12,55 +9,71 @@ This might simplify the interactions and coding
 
   <q-page padding>
     <div class="q-pa-md">
+      <!-- <keep-alive> -->
       <q-table
         flat
         bordered
-        hide-header
         title="Lockers"
         :rows="rows"
         :columns="columns"
-        row-key="lockerNumber"
+        row-key="id"
         :filter="filter"
         :filter-method="customFilter"
-        :rows-per-page-options="[10, 20, 0]"
+        :rows-per-page-options="[0]"
       >
         <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            :class="
-              props.row.status == 'reuse'
-                ? 'bg-yellow text-black'
-                : 'bg-white text-black'
-            "
-          >
-            <q-td key="lockerNumber" :props="props">
-              <q-badge color="primary" outline>
-                {{ props.row.lockerNumber }}
-              </q-badge>
-            </q-td>
-            <q-td key="content" :props="props">
+          <q-tr :props="props">
+            <q-td key="Content" :props="props">
               <div class="text-h6">
-                {{ props.row.content }}
+                {{ props.row.Content }}
                 <q-badge
-                  v-if="props.row.status === 'reuse'"
+                  v-if="props.row.Status === 'reuse'"
                   color="primary"
                   float
                   rounded
                   >reuse</q-badge
                 >
+                <q-badge
+                  v-else-if="
+                    new Date().getTime() >
+                    new Date(props.row.ExpiresOn).getTime()
+                  "
+                  color="red"
+                  float
+                  rounded
+                  >Expired on the {{ props.row.ExpiresOn }}</q-badge
+                >
+                <q-badge
+                  v-else-if="
+                    new Date(props.row.ExpiresOn).getTime() -
+                      new Date().getTime() <
+                    2500000000
+                  "
+                  color="orange"
+                  float
+                  rounded
+                  >Expires on {{ props.row.ExpiresOn }}</q-badge
+                >
               </div>
             </q-td>
-            <q-td key="available" :props="props">
-              <q-badge v-if="props.row.available === 'Y'" color="green">
-                {{ props.row.available }}
-              </q-badge>
-              <q-badge v-else color="red">
-                {{ props.row.available }}
+
+            <q-td key="LockerNumber" :props="props">
+              <q-badge color="primary" outline>
+                {{ props.row.LockerNumber }}
               </q-badge>
             </q-td>
-            <q-td key="open" :props="props">
+
+            <q-td key="Available" :props="props">
+              <q-badge v-if="props.row.Available === 1" color="green">
+                Y<!-- {{ props.row.Available }} -->
+              </q-badge>
+              <q-badge v-else color="red">
+                N<!-- {{ props.row.Available }} -->
+              </q-badge>
+            </q-td>
+            <q-td key="Open" :props="props">
               <q-btn
-                v-if="props.row.available === 'Y'"
+                v-if="props.row.Available === 1"
                 color="primary"
                 label="Open"
                 style="max-width: 65px"
@@ -68,7 +81,7 @@ This might simplify the interactions and coding
               />
               <q-btn
                 v-else-if="
-                  (props.row.available === 'N') & (props.row.status === 'reuse')
+                  (props.row.Available === 0) & (props.row.Status === 'reuse')
                 "
                 color="red-9"
                 text-color="black"
@@ -102,208 +115,122 @@ This might simplify the interactions and coding
 </template>
 
 <script>
-import { ref, WatchEffect } from "vue";
+import { ref } from "vue";
+import { useQuasar } from "quasar"; //allows use of the dialog plug in
 
 const columns = [
   {
-    name: "lockerNumber",
-    required: true,
-    label: "Locker Number",
-    align: "center",
-    sortable: true,
-  },
-  {
-    name: "content",
+    name: "Content",
     align: "left",
     label: "Content",
     sortable: true,
     classes: "text-bold",
+    field: "Content",
   },
   {
-    name: "status",
-    align: "left",
-    label: "Status",
-    field: "status",
+    name: "LockerNumber",
+    required: true,
+    label: "Locker Number",
+    align: "center",
+    field: "LockerNumber",
+    sortable: true,
   },
+
   {
-    name: "available",
+    name: "Available",
     align: "center",
     label: "Available",
-    field: "available",
+    field: "Available",
   },
-  { name: "date_dispensed", label: "Dispensed", field: "date_dispensed" },
-  { name: "open", label: "Open", field: "open" },
+  {
+    name: "Open",
+    align: "center",
+    label: "Action",
+  },
 ];
 
-const rows = [
-  {
-    lockerNumber: "1",
-    content: "Paracetamol 500mg tabs x 20",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "2",
-    content: "Paracetamol 250mg/5mls x 100mls",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "3",
-    content: "Amoxycillin 500mg tabs x 20",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "4",
-    content: "Ibuprofen 200mg tabs x 20",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "5",
-    content: "Naproxen 1000mg m/r tabs x 7",
-    status: "dispense",
-    available: "N",
-    date_dispensed: "202-05-04:11.03",
-    open: "",
-  },
-  {
-    lockerNumber: "6",
-    content: "Mefix 10cm x 10m x 2",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "7",
-    content: "Pulse oximeter",
-    status: "reuse",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "8",
-    content: "Lyclear Dermal Cream 30g",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "9",
-    content: "hydrocortisone 1% cream 15g",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "10",
-    content: "Chloramphenicol 0.5% eye drops 10mls",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "11",
-    content: "Mefix 15cm x 10m x 2",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "12",
-    content: "Salbutamol 100mcg inhaler x 2",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "13",
-    content: "Flixotide 250mcg inhaler x 1",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "14",
-    content: "Flixotide 125mg inhaler x 1",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "15",
-    content: "Spacer for inhalation x 1",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "16",
-    content: "Furosemide 40mg tabs x 28",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: "17",
-    content: "Thermometer",
-    status: "reuse",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-  {
-    lockerNumber: 18,
-    content: "Spironolactone 25mg x 20",
-    status: "dispense",
-    available: "Y",
-    date_dispensed: "",
-    open: "",
-  },
-];
+const rows = [];
+
+// const rows = [ example
+//   {
+//     lockerNumber: "1",
+//     content: "Paracetamol 500mg tabs x 20",
+//     status: "dispense",
+//     available: "Y",
+//     date_dispensed: "",
+//     open: "",
+//   },
 
 export default {
   name: "DispensePage",
   setup() {
+    const q = useQuasar(); //allows use of the dialog plug in
+    const rows = ref([]);
+
     return {
       filter: ref(""), //this is the search box
       columns,
       rows,
       buttonLabel: "Open",
+      tableKey: ref(0), //this key enables a refresh of the table - without this, the screen is not altered by the code
+      q,
     };
   },
 
   methods: {
+    load() {
+      this.loading = true;
+      //use Axios to get the data from the API  - need to use $api here but does not appear to be working
+      //console.log(this.$api);
+      this.$axios
+        .get(`http://localhost:3000/dispense`)
+        // .get(this.$api(`/dispense`)) //this.$api is not working - there is an entry in the boot file axios.js
+        .then((response) => {
+          console.log(response.data);
+          this.rows = response.data.data;
+        })
+        .catch(() => {
+          alert("Error loading dispensing details");
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
     openLocker(row) {
-      row.available = "N";
+      var messageString;
       if (row.status === "dispense") {
-        row.date_dispensed = new Date().toISOString().slice(0, 16);
+        messageString =
+          "Are you sure you want to open this locker to dispense " +
+          row.Content +
+          "?";
+      } else {
+        messageString =
+          "Are you sure you want to open this locker to use the " +
+          row.Content +
+          "?";
       }
-      row.open = "Y"; //this allows the person maintaining the dispensing lockers to know this reuseable item has been used.
+      this.q
+        .dialog({
+          title: "Please Confirm",
+          message:
+            //"Are you sure you want to open this locker ${ row.status } ?",
+            messageString,
+          cancel: true,
+          persistent: true,
+        })
+        .onOk(() => {
+          row.Available = 0;
+          if (row.Status === "dispense") {
+            row.DateDispensed = new Date().toISOString().slice(0, 16);
+          }
+          row.Open = 1; //this allows the person maintaining the dispensing lockers to know this reuseable item has been used.
+          //keep-alive tag solved this problem - this.tableKey += 1; //this key enables a refresh of the table - without this, the screen is not altered by the code
+        });
     },
 
     closeLocker(row) {
-      row.available = "Y";
+      row.Available = 1;
+      //keep-alive tag solved this problem - this.tableKey += 1; //this key enables a refresh of the table - without this, the screen is not altered by the code
     },
 
     // onUpdate() {
@@ -320,7 +247,7 @@ export default {
     },
 
     getFilterValue(row, col, search) {
-      if (col.name === "content") {
+      if (col.name === "Content") {
         return (
           String(this.getCellValue(row, col)).toLowerCase().indexOf(search) > -1
         );
@@ -332,6 +259,9 @@ export default {
       console.log(row[col.name]);
       return row[col.name];
     },
+  },
+  mounted() {
+    this.load();
   },
 };
 </script>
