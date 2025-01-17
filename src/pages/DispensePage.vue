@@ -9,6 +9,8 @@ This might simplify the interactions and coding
     <div class="q-pa-md">
       <!-- <keep-alive> -->
       <q-toggle v-model="refill" label="Enable Refills"> </q-toggle>
+      <q-toggle v-model="refill" label="Enable Refills"> </q-toggle>
+      <q-toggle v-model="refill" label="Enable Refills"> </q-toggle>
       <q-table
         flat
         bordered
@@ -30,7 +32,7 @@ This might simplify the interactions and coding
                   color="primary"
                   float
                   rounded
-                  >reuse</q-badge
+                  >Reuse</q-badge
                 >
                 <q-badge
                   v-else-if="
@@ -46,7 +48,7 @@ This might simplify the interactions and coding
                   v-else-if="
                     new Date(props.row.ExpiresOn).getTime() -
                       new Date().getTime() <
-                    2500000000
+                    2500000000 // Expires in less than 30 days
                   "
                   color="orange"
                   float
