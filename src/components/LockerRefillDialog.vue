@@ -9,7 +9,18 @@
           type="text"
         />
         <q-input v-model="rowContent" label="Locker Content" type="text" />
-        <q-input filled v-model="rowExpiryDate" mask="date" label="Expiry Date">
+        <q-toggle
+          v-model="reuseable"
+          label="Reusable item or device"
+          left-label
+        />
+        <q-input
+          filled
+          v-if="!reuseable"
+          v-model="rowExpiryDate"
+          mask="date"
+          label="Expiry Date"
+        >
           <template v-slot:append>
             <q-icon name="event" class="cursor-pointer">
               <q-popup-proxy
@@ -52,7 +63,7 @@ export default {
   setup(props) {
     const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
       useDialogPluginComponent();
-
+    const reuseable = ref(props.selectedRow.Status === "Reusable");
     const rowContent = ref(props.selectedRow.Content);
     const rowExpiryDate = ref(props.selectedRow.ExpiresOn);
 
@@ -63,6 +74,7 @@ export default {
       onDialogCancel,
       rowContent,
       rowExpiryDate,
+      reuseable,
       rowLockerNumber: props.selectedRow.LockerNumber,
     };
   },
