@@ -9,14 +9,20 @@
           type="text"
         />
         <q-input v-model="rowContent" label="Locker Content" type="text" />
-        <q-toggle
-          v-model="reuseable"
-          label="Reusable item or device"
-          left-label
+        <q-select
+          v-model="rowCategory"
+          :options="[
+            { label: 'Medication', value: 1 },
+            { label: 'Dressings/Supplies', value: 2 },
+            { label: 'Device for reuse', value: 3 },
+          ]"
+          label="Type of content"
+          emit-value
+          map-options
         />
         <q-input
           filled
-          v-if="!reuseable"
+          v-if="rowCategory === 1"
           v-model="rowExpiryDate"
           mask="date"
           label="Expiry Date"
@@ -63,7 +69,7 @@ export default {
   setup(props) {
     const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
       useDialogPluginComponent();
-    const reuseable = ref(props.selectedRow.Status === "Reusable");
+    const rowCategory = ref(props.selectedRow.Category);
     const rowContent = ref(props.selectedRow.Content);
     const rowExpiryDate = ref(props.selectedRow.ExpiresOn);
 
@@ -74,17 +80,23 @@ export default {
       onDialogCancel,
       rowContent,
       rowExpiryDate,
-      reuseable,
+      rowCategory,
       rowLockerNumber: props.selectedRow.LockerNumber,
     };
   },
 
   methods: {
     onOKClick() {
-      console.log("Changes: ", this.rowContent, this.rowExpiryDate);
+      console.log(
+        "Changes: ",
+        this.rowContent,
+        this.rowExpiryDate,
+        this.rowCategory
+      );
       this.onDialogOK({
-        content: this.rowContent,
+        content: this.rowContent, //Caputured by row changes in calling page.
         expiryDate: this.rowExpiryDate,
+        category: this.rowCategory,
       });
     },
 

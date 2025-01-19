@@ -6,11 +6,12 @@ This might simplify the interactions and coding
 -->
 
   <q-page padding>
+    <div id="header" style="overflow: hidden; height: 50px">
+      <q-toggle v-model="refill" label="Enable Refills"> </q-toggle>
+      <q-toggle v-model="reuse" label="Only devices/reusable"> </q-toggle>
+    </div>
     <div class="q-pa-md">
       <!-- <keep-alive> -->
-      <q-toggle v-model="refill" label="Enable Refills"> </q-toggle>
-      <q-toggle v-model="refill" label="Enable Refills"> </q-toggle>
-      <q-toggle v-model="refill" label="Enable Refills"> </q-toggle>
       <q-table
         flat
         bordered
@@ -28,16 +29,25 @@ This might simplify the interactions and coding
               <div class="text-h6">
                 {{ props.row.Content }}
                 <q-badge
-                  v-if="props.row.Status === 'reuse'"
+                  v-if="props.row.Category == 3"
                   color="primary"
                   float
                   rounded
-                  >Reuse</q-badge
+                  >Device</q-badge
+                >
+                <q-badge
+                  v-if="props.row.Category == 2"
+                  color="secondary"
+                  float
+                  rounded
+                  >Supplies</q-badge
                 >
                 <q-badge
                   v-else-if="
                     new Date().getTime() >
-                    new Date(props.row.ExpiresOn).getTime()
+                      new Date(props.row.ExpiresOn).getTime() &&
+                    props.row.Available === 'Y' &&
+                    props.row.Category == 1
                   "
                   color="red"
                   float
@@ -48,7 +58,9 @@ This might simplify the interactions and coding
                   v-else-if="
                     new Date(props.row.ExpiresOn).getTime() -
                       new Date().getTime() <
-                    2500000000 // Expires in less than 30 days
+                      2500000000 && // Expires in less than 30 days
+                    props.row.Available === 'Y' &&
+                    props.row.Category == 1
                   "
                   color="orange"
                   float
@@ -82,7 +94,7 @@ This might simplify the interactions and coding
               />
               <q-btn
                 v-else-if="
-                  (props.row.Available === 'N') & (props.row.Status === 'reuse')
+                  (props.row.Available === 'N') & (props.row.Category == 3)
                 "
                 color="red-9"
                 text-color="black"
@@ -93,7 +105,7 @@ This might simplify the interactions and coding
               <q-btn
                 v-else-if="
                   (props.row.Available === 'N') &
-                  (props.row.Status != 'reuse') &
+                  (props.row.Category != 3) &
                   refill
                 "
                 color="green"
@@ -104,13 +116,14 @@ This might simplify the interactions and coding
               />
               <q-btn
                 v-else-if="
-                  (props.row.Available === 'N') & (props.row.Status != 'reuse')
+                  (props.row.Available === 'N') & (props.row.Category != 3)
                 "
                 outline
                 style="color: red-9; max-width: 60px"
                 label="Refill"
                 @click="refillLocker(props.row)"
               />
+              <!-- q-icon name="sensor_door" added and respond to the IOT environment and switching -->
             </q-td>
           </q-tr>
           <LockerRefillDialog v-model="dialogVisible" :props="props.row" />
@@ -179,7 +192,7 @@ const rows = [];
 //   {
 //     lockerNumber: "1",
 //     content: "Paracetamol 500mg tabs x 20",
-//     status: "dispense",
+//     Category: 1, //"Medication",
 //     available: "Y",
 //     date_dispensed: "",
 //     open: "",
@@ -200,6 +213,7 @@ export default {
       qsr,
       dialogVisible: ref(false),
       refill: ref(false),
+      reuse: ref(false),
     };
   },
 
@@ -225,7 +239,7 @@ export default {
 
     openLocker(row) {
       var messageString;
-      if (row.status === "dispense") {
+      if (row.Category != 3) {
         messageString =
           "Are you sure you want to open this locker to dispense " +
           row.Content +
@@ -240,7 +254,7 @@ export default {
         .dialog({
           title: "Please Confirm",
           message:
-            //"Are you sure you want to open this locker ${ row.status } ?",
+            //"Are you sure you want to open this locker?",
             messageString,
           cancel: true,
           persistent: true,
@@ -249,8 +263,10 @@ export default {
           const newRow = { row };
           newRow.Available = "N";
 
-          if (newRow.row.Status == "dispense") {
-            newRow.DateDispensed = new Date().toLocaleString().slice(0, 17);
+          if (newRow.row.Category != 3) {
+            let dispDate = new Date().toLocaleString();
+            let index = dispDate.indexOf(":") + 3; // date and time only to minutes
+            newRow.DateDispensed = dispDate.slice(0, index);
           }
           newRow.Open = "Y"; //this allows the person maintaining the dispensing lockers to know this reuseable item has been used.
           //need to async and capture error - reverse changes in the current row
@@ -287,17 +303,25 @@ export default {
           .onOk((rowChanges) => {
             //Locker has been refilled
             // console.log(JSON.stringify(rowChanges));
-            console.log(rowChanges);
+            console.log("Dialog return 1: ", rowChanges);
             const newRow = { row };
             newRow.Available = "Y";
             newRow.Open = "N"; //this allows the person maintaining the dispensing lockers to know this reuseable item has been used.
             newRow.DateDispensed = null;
-            console.log(rowChanges.content, rowChanges.expiryDate);
+            console.log(
+              "Dialog return 2: ",
+              rowChanges.content,
+              rowChanges.expiryDate,
+              rowChanges.category
+            );
             if (rowChanges.content && rowChanges.content !== "") {
               newRow.Content = rowChanges.content;
             }
             if (rowChanges.expiryDate) {
               newRow.ExpiresOn = rowChanges.expiryDate.replace(/\//g, "-");
+            }
+            if (rowChanges.category) {
+              newRow.Category = rowChanges.category;
             }
             this.submitDispense(newRow);
           });
@@ -330,7 +354,7 @@ export default {
     async submitDispense(updatedRow) {
       this.loading = true;
       var success = false;
-      console.log("Pre POST 1 in submitDispense: ", updatedRow);
+      console.log("Pre POST 1 in submitDispense: ", updatedRow.Category);
 
       if (updatedRow) {
         //needs validation
