@@ -5,18 +5,52 @@ Possible developments - put all the reuseable items in a separate tab - and show
 This might simplify the interactions and coding
 -->
 
-  <q-page padding>
-    <div id="header" style="overflow: hidden; height: 50px">
-      <q-toggle v-model="refill" label="Enable Refills"> </q-toggle>
-      <q-toggle v-model="reuse" label="Only devices/reusable"> </q-toggle>
-    </div>
+  <q-page>
     <div class="q-pa-md">
-      <!-- <keep-alive> -->
+      <q-toolbar class="bg-secondary text-white q-my-md shadow-2">
+        <q-toggle v-model="refill" label="Enable Refills" class="q-mr-sm" />
+        <q-separator dark vertical inset />
+        <q-toolbar-title>Lockers</q-toolbar-title>
+        <q-space />
+        <q-separator dark vertical inset />
+        <q-space />
+        <q-select
+          v-model="categoryChoice"
+          class="q-mr-sm"
+          :options="[
+            { label: 'All', value: 0 },
+            { label: 'Medication', value: 1 },
+            { label: 'Supplies', value: 2 },
+            { label: 'Device', value: 3 },
+          ]"
+          label="Show Category"
+          emit-value
+          map-options
+          style="min-width: 150px"
+        />
+        <q-separator dark vertical inset />
+
+        <q-input
+          bordered
+          dense
+          bg-color="white"
+          debounce="300"
+          v-model="filter"
+          placeholder="Search"
+          clearable
+          style="max-width: 200px"
+          class="q-mr-sm"
+        >
+          <template v-slot:append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+      </q-toolbar>
+      <!-- <keep-alive> not required as data updated in save to Express functions -->
       <q-table
         flat
         bordered
-        title="Lockers"
-        :rows="rows"
+        :rows="filteredRows"
         :columns="columns"
         row-key="id"
         :filter="filter"
@@ -128,23 +162,6 @@ This might simplify the interactions and coding
           </q-tr>
           <LockerRefillDialog v-model="dialogVisible" :props="props.row" />
         </template>
-
-        <template v-slot:top-right>
-          <!-- this is the search box -->
-          <q-input
-            bordered
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Search"
-            clearable
-            style="max-width: 200px"
-          >
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
-        </template>
       </q-table>
     </div>
   </q-page>
@@ -178,6 +195,7 @@ const columns = [
     align: "center",
     label: "Available",
     field: "Available",
+    sortable: true,
   },
   {
     name: "Open",
@@ -207,13 +225,14 @@ export default {
     return {
       filter: ref(""), //this is the search box
       columns,
-      rows,
+      rows, //original data
+      //filteredRows: [{ rows }], //filtered according to the drop down select to the value in the Category Columm (rows.Category) Medication = 1, Supplies = 2, Device = 3;
       buttonLabel: "Open",
       tableKey: ref(0), //this key enables a refresh of the table - without this, the screen is not altered by the code
       qsr,
       dialogVisible: ref(false),
       refill: ref(false),
-      reuse: ref(false),
+      categoryChoice: ref(0),
     };
   },
 
@@ -408,6 +427,16 @@ export default {
 
   mounted() {
     this.load();
+  },
+
+  computed: {
+    filteredRows() {
+      if (this.categoryChoice === 0) {
+        return this.rows;
+      } else {
+        return this.rows.filter((row) => row.Category === this.categoryChoice);
+      }
+    },
   },
 };
 </script>
