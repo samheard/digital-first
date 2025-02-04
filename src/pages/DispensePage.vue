@@ -8,10 +8,15 @@ This might simplify the interactions and coding
   <q-page>
     <div class="q-pa-md">
       <q-toolbar class="bg-secondary text-white q-my-md shadow-2">
-        <q-toggle v-model="refill" label="Enable Refills" class="q-mr-sm" />
-        <q-separator dark vertical inset />
         <q-toolbar-title>Lockers</q-toolbar-title>
         <q-space />
+        <q-separator dark vertical inset />
+        <q-toggle
+          v-model="refill"
+          label="Enable Refills"
+          color="yellow"
+          class="q-mr-sm"
+        />
         <q-separator dark vertical inset />
         <q-space />
         <q-select
@@ -120,7 +125,17 @@ This might simplify the interactions and coding
             </q-td>
             <q-td key="Open" :props="props">
               <q-btn
-                v-if="props.row.Available === 'Y'"
+                v-if="(props.row.Available === 'N') & refill"
+                color="yellow"
+                text-color="black"
+                style="max-width: 60px"
+                label="Refill"
+                @click="refillLocker(props.row)"
+              />
+              <q-btn
+                v-else-if="
+                  props.row.Available === 'Y' && props.row.Open === 'N'
+                "
                 color="primary"
                 label="Open"
                 style="max-width: 65px"
@@ -128,34 +143,27 @@ This might simplify the interactions and coding
               />
               <q-btn
                 v-else-if="
-                  (props.row.Available === 'N') & (props.row.Category == 3)
+                  (props.row.Open === 'Y') &
+                    (props.row.Available === 'N') &
+                    !refill ||
+                  (props.row.Open === 'Y') &
+                    (props.row.Available === 'Y') &
+                    refill
                 "
                 color="red-9"
                 text-color="black"
-                label="Close"
-                style="max-width: 65px"
+                label="Ask to Close"
+                style="max-width: 125px"
                 @click="closeLocker(props.row)"
               />
               <q-btn
                 v-else-if="
                   (props.row.Available === 'N') &
-                  (props.row.Category != 3) &
-                  refill
-                "
-                color="green"
-                text-color="white"
-                style="max-width: 60px"
-                label="Refill"
-                @click="refillLocker(props.row)"
-              />
-              <q-btn
-                v-else-if="
-                  (props.row.Available === 'N') & (props.row.Category != 3)
+                  ((props.row.Open === 'N') & !refill)
                 "
                 outline
                 style="color: red-9; max-width: 60px"
                 label="Refill"
-                @click="refillLocker(props.row)"
               />
               <!-- q-icon name="sensor_door" added and respond to the IOT environment and switching -->
             </q-td>
@@ -171,6 +179,7 @@ This might simplify the interactions and coding
 import { ref } from "vue";
 import { useQuasar } from "quasar"; //allows use of the dialog plug in
 import LockerRefillDialog from "../components/LockerRefillDialog.vue";
+import { isPropertySignature } from "typescript";
 
 const columns = [
   {
@@ -283,9 +292,19 @@ export default {
           newRow.Available = "N";
 
           if (newRow.row.Category != 3) {
-            let dispDate = new Date().toLocaleString();
-            let index = dispDate.indexOf(":") + 3; // date and time only to minutes
-            newRow.DateDispensed = dispDate.slice(0, index);
+            let dispDate = new Date();
+            const options = {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            };
+            newRow.DateDispensed = dispDate.toLocaleString("en-GB", options);
+            //nst time24 = dispDate.toLocaleString("en-GB", options);
+            //let index = time24.indexOf(":") + 3; // date and time only to minutes
+            //newRow.DateDispensed = time24.slice(0, index);
           }
           newRow.Open = "Y"; //this allows the person maintaining the dispensing lockers to know this reuseable item has been used.
           //need to async and capture error - reverse changes in the current row
@@ -302,8 +321,11 @@ export default {
 
     closeLocker(row) {
       const newRow = { row };
-      newRow.Available = "Y";
-      this.submitDispense(newRow, row);
+      newRow.Open = "N";
+      if (row.Category == 3) {
+        newRow.Available = "Y";
+      }
+      this.submitDispense(newRow);
     },
 
     refillLocker(row) {
@@ -325,7 +347,7 @@ export default {
             console.log("Dialog return 1: ", rowChanges);
             const newRow = { row };
             newRow.Available = "Y";
-            newRow.Open = "N"; //this allows the person maintaining the dispensing lockers to know this reuseable item has been used.
+            newRow.Open = "Y";
             newRow.DateDispensed = null;
             console.log(
               "Dialog return 2: ",
@@ -370,7 +392,7 @@ export default {
       return row[col.name];
     },
 
-    async submitDispense(updatedRow) {
+    async submitDispense(updatedRow, openLocker) {
       this.loading = true;
       var success = false;
       console.log("Pre POST 1 in submitDispense: ", updatedRow.Category);
@@ -409,24 +431,53 @@ export default {
                 );
               }
             });
-        }
-      }
-      if (success) {
-        //no need to reverse changes but if it is successful, need to update the table
-        if (updatedRow) {
-          for (var key in updatedRow) {
-            if (updatedRow.row.hasOwnProperty(key)) {
-              updatedRow.row[key] = updatedRow[key];
+
+          if (success) {
+            //no need to reverse changes but if it is successful, need to update the table
+            if (updatedRow) {
+              for (var key in updatedRow) {
+                if (updatedRow.row.hasOwnProperty(key)) {
+                  updatedRow.row[key] = updatedRow[key];
+                }
+              }
             }
+            // if (updatedRow.Open === "Y") {
+            //   await this.$axios
+            //     .post(
+            //       `http://localhost:3000/lockers/3/open`,
+            //       updatedRow.LockerNumber
+            //     )
+            //     .then((response) => {
+            //       if (response.status === 200) {
+            //         success = true;
+            //       }
+            //       console.log(response);
+            //       console.log(
+            //         "Post POST open locker number ",
+            //         updatedRow.LockerNumber
+            //       );
+            //     })
+            //     .catch((error) => {
+            //       console.log(error);
+            //       if (error.response) {
+            //         if (error.response.status === 400) {
+            //           alert("Error opening locker ", updatedRow.LockerNumber);
+            //         } else {
+            //           alert("Error opening locker ", updatedRow.LockerNumber);
+            //         }
+            //       } else if (error.request) {
+            //         alert("Error opening locker - no response from server");
+            //       } else {
+            //         alert("Error opening locker - unknown network error");
+            //       }
+            //     });
+            // }
           }
         }
       }
+
       this.loading = false;
     },
-  },
-
-  mounted() {
-    this.load();
   },
 
   computed: {
@@ -437,6 +488,11 @@ export default {
         return this.rows.filter((row) => row.Category === this.categoryChoice);
       }
     },
+  },
+
+  mounted() {
+    //this must be outside the setup function
+    this.load();
   },
 };
 </script>
