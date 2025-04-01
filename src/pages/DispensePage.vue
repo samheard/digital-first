@@ -19,6 +19,15 @@ This might simplify the interactions and coding
         />
         <q-separator dark vertical inset />
         <q-space />
+        <q-toggle
+          v-if="refill"
+          v-model="showEmpty"
+          color="yellow"
+          label="Show Empty Lockers"
+        />
+        <q-space v-if="refill" />
+        <q-separator v-if="refill" dark vertical inset />
+        <q-space />
         <q-select
           v-model="categoryChoice"
           class="q-mr-sm"
@@ -241,6 +250,7 @@ export default {
       qsr,
       dialogVisible: ref(false),
       refill: ref(false),
+      showEmpty: ref(false),
       categoryChoice: ref(0),
     };
   },
@@ -483,7 +493,13 @@ export default {
   computed: {
     filteredRows() {
       if (this.categoryChoice === 0) {
-        return this.rows;
+        if (this.showEmpty) {
+          // Show all rows including empty lockers
+          return this.rows;
+        } else {
+          // Show all filled rows
+          return this.rows.filter((row) => row.Content != "Empty");
+        }
       } else {
         return this.rows.filter((row) => row.Category === this.categoryChoice);
       }
