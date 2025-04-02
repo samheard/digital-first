@@ -161,7 +161,7 @@ This might simplify the interactions and coding
                 "
                 color="red-9"
                 text-color="black"
-                label="Ask to Close"
+                label="Confirm Closed"
                 style="max-width: 125px"
                 @click="closeLocker(props.row)"
               />
@@ -493,7 +493,7 @@ export default {
   computed: {
     filteredRows() {
       if (this.categoryChoice === 0) {
-        if (this.showEmpty) {
+        if (this.showEmpty & this.refill) {
           // Show all rows including empty lockers
           return this.rows;
         } else {
