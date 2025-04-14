@@ -155,9 +155,7 @@ This might simplify the interactions and coding
                   (props.row.Open === 'Y') &
                     (props.row.Available === 'N') &
                     !refill ||
-                  (props.row.Open === 'Y') &
-                    (props.row.Available === 'Y') &
-                    refill
+                  (props.row.Open === 'Y') & (props.row.Available === 'Y')
                 "
                 color="red-9"
                 text-color="black"
@@ -276,8 +274,11 @@ export default {
     },
 
     openLocker(row) {
-      var messageString;
+      const originalRow = { ...row }; //shallow copy
+
+      let messageString;
       if (row.Category != 3) {
+        //not a resuable device
         messageString =
           "Are you sure you want to open this locker to dispense " +
           row.Content +
@@ -330,7 +331,7 @@ export default {
     },
 
     closeLocker(row) {
-      const newRow = { row };
+      const newRow = { ...row };
       newRow.Open = "N";
       if (row.Category == 3) {
         newRow.Available = "Y";
@@ -402,9 +403,9 @@ export default {
       return row[col.name];
     },
 
-    async submitDispense(updatedRow, openLocker) {
+    async submitDispense(updatedRow) {
       this.loading = true;
-      var success = false;
+      let success = false;
       console.log("Pre POST 1 in submitDispense: ", updatedRow.Category);
 
       if (updatedRow) {
@@ -416,10 +417,12 @@ export default {
             .post(`http://localhost:3000/dispense/id`, updatedRow)
             .then((response) => {
               if (response.status === 200) {
+                console.log("Success");
                 success = true;
               }
               console.log(response);
               console.log("Post POST", updatedRow);
+              console.log("Post POST", response.data);
             })
             .catch((error) => {
               console.log(error);
@@ -445,43 +448,13 @@ export default {
           if (success) {
             //no need to reverse changes but if it is successful, need to update the table
             if (updatedRow) {
+              console.log("Updating row");
               for (var key in updatedRow) {
                 if (updatedRow.row.hasOwnProperty(key)) {
                   updatedRow.row[key] = updatedRow[key];
                 }
               }
             }
-            // if (updatedRow.Open === "Y") {
-            //   await this.$axios
-            //     .post(
-            //       `http://localhost:3000/lockers/3/open`,
-            //       updatedRow.LockerNumber
-            //     )
-            //     .then((response) => {
-            //       if (response.status === 200) {
-            //         success = true;
-            //       }
-            //       console.log(response);
-            //       console.log(
-            //         "Post POST open locker number ",
-            //         updatedRow.LockerNumber
-            //       );
-            //     })
-            //     .catch((error) => {
-            //       console.log(error);
-            //       if (error.response) {
-            //         if (error.response.status === 400) {
-            //           alert("Error opening locker ", updatedRow.LockerNumber);
-            //         } else {
-            //           alert("Error opening locker ", updatedRow.LockerNumber);
-            //         }
-            //       } else if (error.request) {
-            //         alert("Error opening locker - no response from server");
-            //       } else {
-            //         alert("Error opening locker - unknown network error");
-            //       }
-            //     });
-            // }
           }
         }
       }
